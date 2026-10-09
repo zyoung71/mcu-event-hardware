@@ -77,6 +77,7 @@ int EventSource::AddImmediateAction(CallbackAction action, void* user_data)
 void EventSource::RemoveAction(int id)
 {
     std::erase(event_actions, id_table[id]);
+    std::erase(event_actions_immediate, id_table[id]);
     id_table.erase(id);
 }
 
