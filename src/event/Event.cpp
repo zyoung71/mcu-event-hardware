@@ -1,18 +1,19 @@
+#include "platform/util/queue.h"
 #include <event/Event.hpp>
 #include <hardware/Button.hpp>
 
-queue_t Event::event_queue = {};
+mcu_queue_t* Event::event_queue;
 Event::_InitializeEventQueue Event::_initialize_event_queue = Event::_InitializeEventQueue();
 
 Event::_InitializeEventQueue::_InitializeEventQueue()
 {
-    queue_init(&event_queue, sizeof(Event*), 32);
+    mcu_queue_init(&event_queue, sizeof(Event*), 32);
 }
 
 void Event::HandleEvents()
 {
     Event* event;
-    if (queue_try_remove(&event_queue, &event))
+    while (mcu_queue_try_pop(event_queue, &event))
     {
         event->source->Dispatch(event);
         delete event;

@@ -2,8 +2,9 @@
 
 #include <vector>
 #include <unordered_map>
+#include <cstdint>
 
-#include <pico/util/queue.h>
+#include <platform/util/queue.h>
 
 class EventSource;
 
@@ -20,7 +21,7 @@ protected:
     EventSource* source;
 
 public:
-    static queue_t event_queue;
+    static mcu_queue_t* event_queue;
 
     static void HandleEvents();
 
@@ -76,7 +77,13 @@ public:
     EventSource();
     virtual ~EventSource() = default;
 
+    // AddAction will subscribe an event and when triggered, will call the callback
+    // from a queue inside the main loop of the program.
     [[nodiscard]] virtual int AddAction(CallbackAction action, void* user_data = nullptr);
+
+    // AddImmediateAction will subscribe an event and when triggered, will call the callback
+    // right inside the interrupt handler, which is faster and does not wait for the next
+    // loop iterationbut less reliable in some areas.
     [[nodiscard]] virtual int AddImmediateAction(CallbackAction action, void* user_data = nullptr);
     void RemoveAction(int id);
 

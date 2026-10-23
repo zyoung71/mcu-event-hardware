@@ -1,5 +1,5 @@
 [submodule "lib/pico-util"]
-	path = lib/pico-util
+	path = lib/mcu-util
 	url = https://github.com/zyoung71/pico-util
 [submodule "lib/pico-comms"]
 	path = lib/pico-comms

@@ -3,7 +3,8 @@
 #include <event/Event.hpp>
 #include <util/Debounce.hpp>
 
-#include <pico/stdlib.h>
+#include <platform/platform_config.h>
+#include <platform/gpio.h>
 
 class GPIOEvent : public Event
 {
@@ -19,20 +20,13 @@ public:
     }
 };
 
-enum class Pull
-{
-    NONE,
-    UP,
-    DOWN
-};
-
 class GPIODevice : public IRQSource
 {
 public:
     typedef GPIOEvent EventType;
 
 protected:
-    static GPIODevice* instances[48];
+    static GPIODevice* instances[MCU_NUM_GPIO];
 
     uint8_t gpio_pin;
     uint32_t event_mask;
@@ -43,24 +37,19 @@ protected:
     virtual void HandleIRQ(uint32_t events_triggered_mask) override;
 
 private:
-    static struct _GPIOEnableCallback
-    {
-        _GPIOEnableCallback();
-    } _callback_enable_inst;
-
-    static void gpio_callback(uint8_t gpio_pin, uint32_t events_triggered_mask);
+    static void gpio_callback(uint8_t gpio_pin, uint32_t events_triggered_mask, void* context);
 
 public:
-    GPIODevice(uint8_t gpio_pin, Pull pull, uint32_t event_mask);
+    GPIODevice(uint8_t gpio_pin, mcu_gpio_pull_t pull, uint32_t event_mask);
     virtual ~GPIODevice();
 
     inline bool IsHigh() const
     {
-        return gpio_get(gpio_pin);
+        return mcu_gpio_get(gpio_pin);
     }
     inline bool IsLow() const
     {
-        return !gpio_get(gpio_pin);
+        return !mcu_gpio_get(gpio_pin);
     }
 
     virtual bool IsActivated() const;
@@ -74,6 +63,6 @@ protected:
     virtual void HandleIRQ(uint32_t events_triggered_mask) override;
 
 public:
-    GPIODeviceDebounce(uint8_t gpio_pin, Pull pull, uint32_t event_mask, uint32_t debounce_ms);
+    GPIODeviceDebounce(uint8_t gpio_pin, mcu_gpio_pull_t pull, uint32_t event_mask, uint32_t debounce_ms);
     virtual ~GPIODeviceDebounce() = default;
 };

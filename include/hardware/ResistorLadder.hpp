@@ -2,13 +2,8 @@
 
 #include "AnalogDevice.hpp"
 #include "GPIODevice.hpp"
-
 #include <util/ArraySupplier.hpp>
-
 #include <algorithm>
-#include <hardware/adc.h>
-
-#define ADC_PIN_BEGIN_OFFSET 26
 
 template<size_t ladder_bars>
 class ResistorLadder : public ArraySupplier<AnalogDevice*, ladder_bars>
@@ -20,11 +15,11 @@ private:
     }
 
 protected:
-    uint16_t deadzone_max;
-    uint16_t deadzone_min;
+    uint32_t deadzone_max;
+    uint32_t deadzone_min;
 
 public:
-    ResistorLadder(uint16_t deadzone_min = 0, uint16_t deadzone_max = 0xFFF)
+    ResistorLadder(uint32_t deadzone_min = 0, uint32_t deadzone_max = 0xFFF)
         : deadzone_min(deadzone_min), deadzone_max(deadzone_max) {}
     virtual ~ResistorLadder() = default;
 
@@ -35,8 +30,7 @@ public:
 
     void DetectADC()
     {
-        adc_select_input(this->array[0]->GetADCPin() - ADC_PIN_BEGIN_OFFSET);
-        uint16_t adc_v = adc_read();
+        uint32_t adc_v = mcu_adc_read(this->array[0]->GetADCPin());
 
         if (adc_v < deadzone_min || adc_v > deadzone_max)
             return;
@@ -50,7 +44,7 @@ public:
             {
                 Event* ev_adc = new AnalogEvent(source, source->GetADCPin(), adc_v);
                 source->ProcessImmediateActions(ev_adc);
-                queue_try_add(&Event::event_queue, &ev_adc);
+                mcu_queue_try_push(Event::event_queue, &ev_adc);
                 return;
             }
         }
@@ -61,8 +55,7 @@ public:
         static int32_t previous_button_index = -1;
         int32_t current_button_index;
 
-        adc_select_input(this->array[0]->GetADCPin() - ADC_PIN_BEGIN_OFFSET);
-        uint16_t adc_v = adc_read();
+        uint32_t adc_v = adc_read(this->array[0]->GetADCPin());
 
         if (adc_v < deadzone_min || adc_v > deadzone_max)
             return;
@@ -84,7 +77,7 @@ public:
                 previous_button_index = current_button_index;
                 Event* ev_adc = new AnalogEvent(source, source->GetADCPin(), adc_v);
                 source->ProcessImmediateActions(ev_adc);
-                queue_try_add(&Event::event_queue, &ev_adc);
+                mcu_queue_try_push(Event::event_queue, &ev_adc);
                 return;
             }
             previous_button_index = -1; // if no button pressed
@@ -99,7 +92,7 @@ template<size_t ladder_bars>
 class DetectableResistorLadder : public GPIODeviceDebounce, public ResistorLadder<ladder_bars>
 {
 public:
-    DetectableResistorLadder(uint8_t shared_gpio_pin, Pull pull, uint32_t event_mask, uint16_t deadzone_min = 0, uint16_t deadzone_max = 0xFFF, uint32_t debounce_ms = 50)
+    DetectableResistorLadder(uint8_t shared_gpio_pin, mcu_gpio_pull_t pull, uint32_t event_mask, uint32_t deadzone_min = 0, uint32_t deadzone_max = 0xFFF, uint32_t debounce_ms = 50)
         : GPIODeviceDebounce(shared_gpio_pin, pull, event_mask, debounce_ms), ResistorLadder<ladder_bars>(deadzone_min, deadzone_max)
     {
     }
@@ -114,7 +107,7 @@ public:
                 if (event_actions.size() > 0)
                 {
                     Event* ev_gpio = new GPIOEvent(this, events_triggered_mask);
-                    queue_try_add(&Event::event_queue, &ev_gpio);
+                    mcu_queue_try_push(Event::event_queue, &ev_gpio);
                 }   
                 this->DetectADC();
             }

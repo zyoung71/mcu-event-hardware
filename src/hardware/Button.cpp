@@ -1,3 +1,4 @@
+#include "platform/gpio.h"
 #include <hardware/Button.hpp>
 
 ButtonEvent::ButtonEvent(EventSource* source, uint32_t events_triggered_mask, uint32_t press_iteration)
@@ -8,11 +9,11 @@ ButtonEvent::ButtonEvent(EventSource* source, uint32_t events_triggered_mask, ui
 bool ButtonEvent::WasPressed() const
 {
     const Button* button = (Button*)source;
-    return events_triggered_mask & (button->IsWiredToGround() ? GPIO_IRQ_EDGE_FALL : GPIO_IRQ_EDGE_RISE);
+    return events_triggered_mask & (button->IsWiredToGround() ? MCU_GPIO_IRQ_FALLING : MCU_GPIO_IRQ_RISING);
 }
 
 Button::Button(uint8_t gpio_pin, bool gnd_to_pin, uint32_t debounce_ms)
-    : GPIODeviceDebounce(gpio_pin, gnd_to_pin ? Pull::UP : Pull::DOWN, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, debounce_ms),
+    : GPIODeviceDebounce(gpio_pin, gnd_to_pin ? MCU_GPIO_PULL_UP : MCU_GPIO_PULL_DOWN, MCU_GPIO_IRQ_FALLING | MCU_GPIO_IRQ_RISING, debounce_ms),
     gnd_to_pin(gnd_to_pin)
 {
 }
@@ -25,14 +26,14 @@ void Button::HandleIRQ(uint32_t events_triggered_mask)
         {
             Event* ev = new ButtonEvent(this, events_triggered_mask);
             ProcessImmediateActions(ev);
-            queue_try_add(&Event::event_queue, &ev);
+            mcu_queue_try_push(Event::event_queue, &ev);
         }
     }
 }
 
 bool Button::IsActivated() const
 {
-    return gnd_to_pin ? !gpio_get(gpio_pin) : gpio_get(gpio_pin);
+    return gnd_to_pin ? !mcu_gpio_get(gpio_pin) : mcu_gpio_get(gpio_pin);
 }
 
 DoublePressButton::DoublePressButton(uint8_t gpio_pin, uint32_t window_ms, bool gnd_to_pin, uint32_t debounce_ms)
@@ -57,14 +58,14 @@ void DoublePressButton::HandleIRQ(uint32_t events_triggeted_mask)
                 double_press_intermediate = false;
                 Event* ev = new ButtonEvent(this, events_triggeted_mask, 2);
                 ProcessImmediateActions(ev);
-                queue_try_add(&Event::event_queue, &ev);
+                mcu_queue_try_push(Event::event_queue, &ev);
             }
             else
             {
                 double_press_intermediate = true;
                 Event* ev = new ButtonEvent(this, events_triggeted_mask, 1);
                 ProcessImmediateActions(ev);
-                queue_try_add(&Event::event_queue, &ev);
+                mcu_queue_try_push(Event::event_queue, &ev);
             }
     
             press_window_curr_time = to_us_since_boot(get_absolute_time());
@@ -96,21 +97,21 @@ void TriplePressButton::HandleIRQ(uint32_t events_triggered_mask)
                 double_press_intermediate = false;
                 Event* ev = new ButtonEvent(this, events_triggered_mask, 3);
                 ProcessImmediateActions(ev);
-                queue_try_add(&Event::event_queue, &ev);
+                mcu_queue_try_push(Event::event_queue, &ev);
             }
             else if (double_press_intermediate) // On second press
             {
                 triple_press_intermediate = true;
                 Event* ev = new ButtonEvent(this, events_triggered_mask, 2);
                 ProcessImmediateActions(ev);
-                queue_try_add(&Event::event_queue, &ev);
+                mcu_queue_try_push(Event::event_queue, &ev);
             }
             else // On first press
             {
                 double_press_intermediate = true;
                 Event* ev = new ButtonEvent(this, events_triggered_mask, 1);
                 ProcessImmediateActions(ev);
-                queue_try_add(&Event::event_queue, &ev);
+                mcu_queue_try_push(Event::event_queue, &ev);
             }
     
             press_window_curr_time = to_us_since_boot(get_absolute_time());
@@ -137,7 +138,7 @@ void StickyButton::HandleIRQ(uint32_t events_triggered_mask)
     
             Event* ev = new ButtonEvent(this, events_triggered_mask);
             ProcessImmediateActions(ev);
-            queue_try_add(&Event::event_queue, &ev);
+            mcu_queue_try_push(Event::event_queue, &ev);
         }
     }
 }

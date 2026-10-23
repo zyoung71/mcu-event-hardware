@@ -50,7 +50,7 @@ bool SerialUSB::DetectCommandsOverUSB()
 
             Event* ev = new CommandEvent(this, Command(cause, cmd_name_buff, cmd_args_buff, buff));
             ProcessImmediateActions(ev);
-            queue_try_add(&Event::event_queue, &ev);
+            mcu_queue_try_push(Event::event_queue, &ev);
             return true;
         }
     }

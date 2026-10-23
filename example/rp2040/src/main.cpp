@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <platform/gpio.h>
 
 #include <hardware/Button.hpp>
 #include <hardware/Timer.hpp>
@@ -72,8 +73,8 @@ int main()
     // between the CDC too. If using bi-directional communication, serial prints must be turned off.
     stdio_init_all();
 
-    gpio_init(PICO_DEFAULT_LED_PIN);
-    gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
+    mcu_gpio_init(PICO_DEFAULT_LED_PIN);
+    mcu_gpio_dir(PICO_DEFAULT_LED_PIN, MCU_GPIO_OUTPUT);
     
     // Standard button.
     Button button0 = 0;
@@ -121,7 +122,7 @@ int main()
     int id6 = serial_usb_detector.AddAction(&serial_detector_action);
 
     // Signal LED to verify setup was completed.
-    gpio_put(PICO_DEFAULT_LED_PIN, true);
+    mcu_gpio_put(PICO_DEFAULT_LED_PIN, true);
 
     constexpr size_t chunk = 32;
     char rx[chunk];

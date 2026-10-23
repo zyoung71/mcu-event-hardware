@@ -1,53 +1,24 @@
 #include <hardware/PulseWidthModulation.hpp>
+#include "platform/pwm.h"
 
-#include <hardware/clocks.h>
-#include <hardware/gpio.h>
-#include <hardware/pwm.h>
-
-PulseWidthModulation::PulseWidthModulation(uint8_t gpio_pin, float frequency, float duty_cycle)
-    : PulseWidthModulation(gpio_pin)
+PulseWidthModulation::PulseWidthModulation(uint8_t gpio_pin, float frequency, float duty_cycle, bool inverted)
+    : gpio_pin(gpio_pin)
 {
-    SetFrequency(frequency);
-    SetDutyCycle(duty_cycle);
-}
-
-PulseWidthModulation::PulseWidthModulation(uint8_t gpio_pin) : gpio_pin(gpio_pin)
-{
-    slice = pwm_gpio_to_slice_num(gpio_pin);
-    gpio_set_function(gpio_pin, GPIO_FUNC_PWM);
+    if (mcu_pwm_init(gpio_pin, frequency, inverted))
+        mcu_pwm_set_duty(gpio_pin, duty_cycle);
 }
 
 void PulseWidthModulation::SetFrequency(float frequency)
 {
-    
-    clock = (float)clock_get_hz(clk_sys);
-    float divider = clock / (frequency * 65536.f);
-
-    if (divider < 1.f)
-        divider = 1.f;
-    if (divider > 255.f)
-        divider = 255.f;
-
-    wrap = (uint16_t)(clock / (divider * frequency)) - 1;
-
-    pwm_set_clkdiv(slice, divider);
-    pwm_set_wrap(slice, wrap);
-
-    uint channel = pwm_gpio_to_channel(gpio_pin);
-    pwm_set_chan_level(slice, channel, 0);
+    mcu_pwm_set_frequency(gpio_pin, frequency);
 }
 
 void PulseWidthModulation::SetDutyCycle(float duty_cycle)
 {
-    if (duty_cycle < 0.f)
-        duty_cycle = 0.f;
-    if (duty_cycle > 1.f)
-        duty_cycle = 1.f;
-
-    pwm_set_chan_level(slice, channel, duty_cycle * (wrap + 1));
+    mcu_pwm_set_duty(gpio_pin, duty_cycle);
 }
 
 void PulseWidthModulation::SetEnabled(bool enable)
 {
-    pwm_set_enabled(slice, enable);
+    mcu_pwm_set_enabled(gpio_pin, enable);
 }

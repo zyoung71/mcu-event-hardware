@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 # Set VSCode Workspace Folder.
-set(VSCODE_WORKSPACE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..)
+set(VSCODE_WORKSPACE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 
 # Using C17 and C++20 by default.
 set(CMAKE_C_STANDARD 17)
@@ -44,39 +44,44 @@ else()
 endif()
 
 # Change the first argument with your project name!
-project(pico-event-hardware-impl C CXX ASM)
+project(mcu-event-hardware-impl-rp2040 C CXX ASM)
 
 pico_sdk_init()
 
-add_subdirectory(../ build)
+add_subdirectory(../../ build/mcu-event-hardware)
+add_subdirectory(../../lib/mcu-util/lib/mcu-platform/platforms/rp2040 build/mcu-platform-rp2040)
 
 add_executable(${CMAKE_PROJECT_NAME} src/main.cpp)
 
-add_executable(peh-button src/button.cpp)
+add_executable(meh-button src/button.cpp)
 
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC
     include
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
-    pico-event-hardware
+    pico_stdlib
+    mcu-event-hardware
+    mcu-platform-rp2040
 )
 
-target_link_libraries(peh-button
-    pico-event-hardware
+target_link_libraries(meh-button
+    pico_stdlib
+    mcu-event-hardware
+    mcu-platform-rp2040
 )
 
 pico_enable_stdio_usb(${CMAKE_PROJECT_NAME} 1)
 pico_enable_stdio_uart(${CMAKE_PROJECT_NAME} 1)
 pico_add_extra_outputs(${CMAKE_PROJECT_NAME})
 
-pico_enable_stdio_usb(peh-button 1)
-pico_enable_stdio_uart(peh-button 1)
-pico_add_extra_outputs(peh-button)
+pico_enable_stdio_usb(meh-button 1)
+pico_enable_stdio_uart(meh-button 1)
+pico_add_extra_outputs(meh-button)
 
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/tmp/upload_button.sh
 "#!/bin/bash
-sudo openocd -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c \"adapter speed 5000\" -c \"program peh-button.elf verify reset exit\"
+sudo openocd -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c \"adapter speed 5000\" -c \"program meh-button.elf verify reset exit\"
 ")
 
 file(

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <event/Event.hpp>
+#include <platform/time.h>
 
 class TimerEvent : public Event
 {
@@ -14,9 +15,11 @@ public:
     typedef TimerEvent EventType;
 
 protected:
-    absolute_time_t us_elapsed;
-    absolute_time_t us_start;
-    absolute_time_t us_begintime;
+    timer_id_t id;
+
+    time_t us_elapsed;
+    time_t us_start;
+    time_t us_begintime;
 
     uint32_t interval_ms; // only matters when the Start function is called without arguments
 
@@ -24,17 +27,20 @@ protected:
 
 public:
     inline Timer(uint32_t interval_ms = 1000)
-        : EventSource(), us_elapsed(0), us_start(0), us_begintime(0), is_active(false), interval_ms(interval_ms)
+        : EventSource(), id(INVALID_TIMER_ID), us_elapsed(0), us_start(0), us_begintime(0), is_active(false), interval_ms(interval_ms)
     {
     }
-    virtual ~Timer() = default;
+    virtual inline ~Timer()
+    {
+        End();
+    }
 
     virtual void Start(uint32_t ms) = 0; // overrides the initial timer interval
     inline void Start()
     {
         return Start(interval_ms);
     }
-    virtual void End() = 0;
+    void End();
 
     inline uint64_t GetTimeElapsedMicroseconds() const
     {
@@ -62,7 +68,7 @@ public:
     }
     inline void UpdateTime()
     {
-        us_elapsed = to_us_since_boot(get_absolute_time()) - us_start;
+        us_elapsed = mcu_get_time_since_boot_us() - us_start;
     }
     inline bool IsActive() const
     {
@@ -73,35 +79,25 @@ public:
 class CountdownTimer : public Timer
 {
 private:
-    static bool timer_callback(alarm_id_t id, void* timer);
-
-protected:
-    int id;
+    static void timer_callback(void* context);
 
 public:
-    inline CountdownTimer(uint32_t interval_ms = 1000) : Timer(interval_ms), id(-1) {}
-    virtual ~CountdownTimer();
+    inline CountdownTimer(uint32_t interval_ms = 1000) : Timer(interval_ms) {}
+    virtual ~CountdownTimer() = default;
 
     virtual void Start(uint32_t ms) override;
-    virtual void End() override;
-
     using Timer::Start;
 };
 
 class RepeatingTimer : public Timer
 {
 private:
-    static bool timer_callback(repeating_timer_t* timer);
-
-protected:
-    repeating_timer_t repeat_timer;
+    static void timer_callback(void* context);
 
 public:
     inline RepeatingTimer(uint32_t interval_ms = 1000) : Timer(interval_ms) {}
-    virtual ~RepeatingTimer();
+    virtual ~RepeatingTimer() = default;
 
     virtual void Start(uint32_t ms) override;
-    virtual void End() override;
-
     using Timer::Start;
 };

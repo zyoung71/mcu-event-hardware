@@ -1,19 +1,14 @@
 #pragma once
 
-#include <cstdint>
+#include <platform/pwm.h>
 
 class PulseWidthModulation
 {
 protected:
-    float clock;
-    uint16_t wrap;
-    uint8_t gpio_pin;
-    uint8_t slice;
-    uint8_t channel;
+    const uint8_t gpio_pin;
 
 public:
-    PulseWidthModulation(uint8_t gpio_pin, float frequency, float duty_cycle);
-    PulseWidthModulation(uint8_t gpio_pin);
+    PulseWidthModulation(uint8_t gpio_pin, float frequency, float duty_cycle, bool inverted = false);
 
     void SetFrequency(float frequency);
     void SetDutyCycle(float duty_cycle);

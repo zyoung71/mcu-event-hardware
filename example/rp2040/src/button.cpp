@@ -1,4 +1,7 @@
+#include "platform/adc.h"
 #include <stdio.h>
+#include <pico/stdio.h>
+#include <platform/gpio.h>
 
 #include <hardware/Button.hpp>
 #include <hardware/ResistorLadder.hpp>
@@ -18,8 +21,7 @@
 int main()
 {
     stdio_init_all();
-    adc_init();
-    adc_select_input(0);
+    mcu_adc_init(26);
 
     // Button button1 = 16;
     // Button button2 = 17;
@@ -36,7 +38,7 @@ int main()
     AnalogDevice abutton7(26, 3525);
     AnalogDevice abutton8(26, 3800);
 
-    DetectableResistorLadder<8> button_ladder(16, Pull::UP, GPIO_IRQ_EDGE_FALL);
+    DetectableResistorLadder<8> button_ladder(16, MCU_GPIO_PULL_UP, MCU_GPIO_IRQ_FALLING);
 
     ADD_TO_RLADDER(1);
     ADD_TO_RLADDER(2);
@@ -96,6 +98,8 @@ int main()
     while (1)
     {
         Event::HandleEvents();
+        sleep_ms(500);
+        puts("test");
     }
 
 }

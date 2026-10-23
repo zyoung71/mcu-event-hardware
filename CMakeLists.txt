@@ -1,6 +1,6 @@
-if (NOT TARGET pico-event-hardware)
+if (NOT TARGET mcu-event-hardware)
 
-    add_library(pico-event-hardware STATIC
+    add_library(mcu-event-hardware STATIC
         src/event/Event.cpp
         src/event/Command.cpp
         src/event/USBOverrides.cpp
@@ -12,19 +12,17 @@ if (NOT TARGET pico-event-hardware)
         src/hardware/PulseWidthModulation.cpp
     )
     
-    add_subdirectory(lib/pico-util)
+    add_subdirectory(lib/mcu-util)
     add_subdirectory(lib/pico-comms)
 
-    target_include_directories(pico-event-hardware PUBLIC
+    target_include_directories(mcu-event-hardware PUBLIC
         include
     )
     
-    target_link_libraries(pico-event-hardware
-        pico-util
+    target_link_libraries(mcu-event-hardware
+        mcu-platform-interface
+        mcu-util
         pico-comms
-        hardware_adc
-        hardware_pwm
-        hardware_clocks
     )
     
 endif()
