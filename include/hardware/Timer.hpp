@@ -15,11 +15,11 @@ public:
     typedef TimerEvent EventType;
 
 protected:
-    timer_id_t id;
+    mcu_timer_id_t id;
 
-    time_t us_elapsed;
-    time_t us_start;
-    time_t us_begintime;
+    mcu_time_t us_elapsed;
+    mcu_time_t us_start;
+    mcu_time_t us_begintime;
 
     uint32_t interval_ms; // only matters when the Start function is called without arguments
 
