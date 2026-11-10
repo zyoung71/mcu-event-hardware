@@ -45,8 +45,8 @@ class DoublePressButton : public Button
 protected:
     bool double_press_intermediate; // switched on when button is pressed once, awaiting the second
 
-    absolute_time_t press_window_us;
-    absolute_time_t press_window_curr_time;
+    mcu_time_t press_window_us;
+    mcu_time_t press_window_curr_time;
 
     virtual void HandleIRQ(uint32_t events_triggered_mask) override;
 
@@ -54,7 +54,7 @@ public:
     DoublePressButton(uint8_t gpio_pin, uint32_t window_ms = 500, bool gnd_to_pin = true, uint32_t debounce_ms = 50);
     virtual ~DoublePressButton() = default;
 
-    inline void SetPressTimeWindowMs(absolute_time_t window_ms)
+    inline void SetPressTimeWindowMs(mcu_time_t window_ms)
     {
         press_window_us = window_ms * 1000ULL;
     }
@@ -97,7 +97,7 @@ private:
     _InitData* init_data;
 
 protected:
-    absolute_time_t repeat_wait_us;
+    mcu_time_t repeat_wait_us;
     CountdownTimer edge_detection_timer;
     RepeatingTimer& repeat_timer;
 

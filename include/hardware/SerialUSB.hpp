@@ -1,5 +1,7 @@
 #pragma once
 
+#if 0
+
 #include <event/Command.hpp>
 
 #include <tusb.h>
@@ -88,3 +90,4 @@ public:
     friend void tud_suspend_cb(bool remote_wakeup_en);
     friend void tud_resume_cb(void);
 };
+#endif

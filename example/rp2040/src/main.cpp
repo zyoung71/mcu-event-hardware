@@ -1,10 +1,13 @@
+#include <pico/stdio.h>
 #include <stdio.h>
+#include <string.h>
 #include <platform/gpio.h>
 
 #include <hardware/Button.hpp>
 #include <hardware/Timer.hpp>
 #include <hardware/SerialUSB.hpp>
-#include <comms/serial_usb.h>
+#include <event/Command.hpp>
+//#include <comms/serial_usb.h>
 
 void act0(const Event* ev, void* user_data)
 {
@@ -21,39 +24,39 @@ void timer_action(const Event* ev, void* user_data)
     printf("Timer fired\tData: %i\n", value);
 }
 
-void serial_action(const Event* ev, void* user_data)
-{
-    auto real_event = ev->GetEventAsType<CommandEvent>();
-    auto source = ev->GetSourceAsType<SerialUSB>();
-    if (real_event && source)
-    {
-        const Command& cmd = real_event->GetCommand();
-        printf("Serial: %s\n", cmd.GetFullCommand());
+// void serial_action(const Event* ev, void* user_data)
+// {
+//     auto real_event = ev->GetEventAsType<CommandEvent>();
+//     auto source = ev->GetSourceAsType<SerialUSB>();
+//     if (real_event && source)
+//     {
+//         const Command& cmd = real_event->GetCommand();
+//         printf("Serial: %s\n", cmd.GetFullCommand());
         
-        // Example: uploading a file. In this case, it is printed to stdout.
-        if (strncmp(cmd.command_name, "uploadfile", max_command_segment_length) == 0)
-        {
-            constexpr size_t chunk = 32;
+//         // Example: uploading a file. In this case, it is printed to stdout.
+//         if (strncmp(cmd.command_name, "uploadfile", max_command_segment_length) == 0)
+//         {
+//             constexpr size_t chunk = 32;
 
-            size_t file_size;
-            char file_name[max_command_segment_length];
-            cmd.ArgScan("%u \"%s\"", &file_size, file_name);
+//             size_t file_size;
+//             char file_name[max_command_segment_length];
+//             cmd.ArgScan("%u \"%s\"", &file_size, file_name);
 
-            source->SendCommandOverUSB(Command("__cmd__", "ready")); // Ready for data to be sent.
-            SerialUSB::serial_status = WORKING_READ;
-        }
+//             source->SendCommandOverUSB(Command("__cmd__", "ready")); // Ready for data to be sent.
+//             SerialUSB::serial_status = WORKING_READ;
+//         }
         
-    }
-}
+//     }
+// }
 
-void serial_detector_action(const Event* ev, void* user_data)
-{
-    auto real_event = ev->GetEventAsType<USBUpdateEvent>();
-    if (real_event)
-    {
-        printf("Serial Connection Event: %d", real_event->GetConnectionStatus());
-    }
-}
+// void serial_detector_action(const Event* ev, void* user_data)
+// {
+//     auto real_event = ev->GetEventAsType<USBUpdateEvent>();
+//     if (real_event)
+//     {
+//         printf("Serial Connection Event: %d", real_event->GetConnectionStatus());
+//     }
+// }
 
 void loop_action(const Event* ev, void* user_data)
 {
@@ -94,10 +97,10 @@ int main()
 
     // The USB port reading serial data. Max buffer size is 256.
     // This will fire the linked actions if the given string is read from the serial port.
-    SerialUSB serial_usb = SerialUSB("__cmd__");
+    //SerialUSB serial_usb = SerialUSB("__cmd__");
 
     // Physical USB detection.
-    SerialUSBDetector serial_usb_detector;
+    //SerialUSBDetector serial_usb_detector;
 
     // Set two actions for each button.
     // All actions return an integer ID that is used to remove the action if needed.
@@ -116,10 +119,10 @@ int main()
     repeat_timer.Start(3000);
 
     // Set actions for the serial reading detector.
-    int id5 = serial_usb.AddAction(&serial_action);
+    //int id5 = serial_usb.AddAction(&serial_action);
 
     // Set actions for the physical serial connection callbacks.
-    int id6 = serial_usb_detector.AddAction(&serial_detector_action);
+    //int id6 = serial_usb_detector.AddAction(&serial_detector_action);
 
     // Signal LED to verify setup was completed.
     mcu_gpio_put(PICO_DEFAULT_LED_PIN, true);
@@ -137,19 +140,19 @@ int main()
         Event::HandleEvents();
         
         // Check serial port.
-        serial_usb.DetectCommandsOverUSB();
+        //serial_usb.DetectCommandsOverUSB();
 
-        if (SerialUSB::serial_status == WORKING_READ)
-        {
-            comms_serial_try_read_buff_over_usb_quick(rx, chunk, &this_bytes_read);
-            bytes_read += this_bytes_read;
-            rx[chunk - 1] = '\0'; // Obviously do not do this for data transfers.
-            printf("Read buffer chunk: %s\n", rx);
-        }
-        else if (SerialUSB::serial_status == WORKING_WRITE)
-        {
-            comms_serial_try_write_buff_over_usb_quick(tx, chunk);
-        }
+        // if (SerialUSB::serial_status == WORKING_READ)
+        // {
+        //     comms_serial_try_read_buff_over_usb_quick(rx, chunk, &this_bytes_read);
+        //     bytes_read += this_bytes_read;
+        //     rx[chunk - 1] = '\0'; // Obviously do not do this for data transfers.
+        //     printf("Read buffer chunk: %s\n", rx);
+        // }
+        // else if (SerialUSB::serial_status == WORKING_WRITE)
+        // {
+        //     comms_serial_try_write_buff_over_usb_quick(tx, chunk);
+        // }
     }
 #endif
     return 0;

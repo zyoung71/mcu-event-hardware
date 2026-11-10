@@ -98,7 +98,7 @@ int main()
     while (1)
     {
         Event::HandleEvents();
-        sleep_ms(500);
+        mcu_sleep_ms(500);
         puts("test");
     }
 

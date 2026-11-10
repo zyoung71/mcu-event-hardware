@@ -37,7 +37,7 @@ bool Button::IsActivated() const
 }
 
 DoublePressButton::DoublePressButton(uint8_t gpio_pin, uint32_t window_ms, bool gnd_to_pin, uint32_t debounce_ms)
-    : Button(gpio_pin, gnd_to_pin, debounce_ms), press_window_us(window_ms * 1000ULL), press_window_curr_time(to_us_since_boot(get_absolute_time()))
+    : Button(gpio_pin, gnd_to_pin, debounce_ms), press_window_us(window_ms * 1000ULL), press_window_curr_time(mcu_get_time_since_boot_us())
 {
 }
 
@@ -47,7 +47,7 @@ void DoublePressButton::HandleIRQ(uint32_t events_triggeted_mask)
     {
         if (debouncer.Allow())
         {
-            absolute_time_t now = to_us_since_boot(get_absolute_time());
+            mcu_time_t now = mcu_get_time_since_boot_us();
             if (press_window_curr_time - now >= press_window_us)
             {
                 double_press_intermediate = false;
@@ -68,7 +68,7 @@ void DoublePressButton::HandleIRQ(uint32_t events_triggeted_mask)
                 mcu_queue_try_push(Event::event_queue, &ev);
             }
     
-            press_window_curr_time = to_us_since_boot(get_absolute_time());
+            press_window_curr_time = mcu_get_time_since_boot_us();
         }
     }
 }
@@ -84,7 +84,7 @@ void TriplePressButton::HandleIRQ(uint32_t events_triggered_mask)
     {
         if (debouncer.Allow())
         {
-            absolute_time_t now = to_us_since_boot(get_absolute_time());
+            mcu_time_t now = mcu_get_time_since_boot_us();
             if (press_window_curr_time - now >= press_window_us)
             {
                 triple_press_intermediate = false;
@@ -114,7 +114,7 @@ void TriplePressButton::HandleIRQ(uint32_t events_triggered_mask)
                 mcu_queue_try_push(Event::event_queue, &ev);
             }
     
-            press_window_curr_time = to_us_since_boot(get_absolute_time());
+            press_window_curr_time = mcu_get_time_since_boot_us();
         }
     }
 }
