@@ -1,5 +1,4 @@
 #include "platform/time.h"
-#include "platform/util/queue.h"
 #include <hardware/Timer.hpp>
 
 TimerEvent::TimerEvent(EventSource* source)
@@ -22,7 +21,7 @@ void CountdownTimer::timer_callback(void* context)
 
     Event* ev = new TimerEvent(self);
     self->ProcessImmediateActions(ev);
-    mcu_queue_try_push(Event::event_queue, &ev);
+    Event::AddToEventQueue(&ev);
 
     self->us_start = 0;
     self->End();
@@ -50,7 +49,7 @@ void RepeatingTimer::timer_callback(void* context)
 
     Event* ev = new TimerEvent(self);
     self->ProcessImmediateActions(ev);
-    mcu_queue_try_push(Event::event_queue, &ev);
+    Event::AddToEventQueue(&ev);
     
     self->us_start = mcu_get_time_since_boot_us();
 }

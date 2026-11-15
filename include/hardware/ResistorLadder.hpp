@@ -44,7 +44,7 @@ public:
             {
                 Event* ev_adc = new AnalogEvent(source, source->GetADCPin(), adc_v);
                 source->ProcessImmediateActions(ev_adc);
-                mcu_queue_try_push(Event::event_queue, &ev_adc);
+                Event::AddToEventQueue(&ev_adc);
                 return;
             }
         }
@@ -77,7 +77,7 @@ public:
                 previous_button_index = current_button_index;
                 Event* ev_adc = new AnalogEvent(source, source->GetADCPin(), adc_v);
                 source->ProcessImmediateActions(ev_adc);
-                mcu_queue_try_push(Event::event_queue, &ev_adc);
+                Event::AddToEventQueue(&ev_adc);
                 return;
             }
             previous_button_index = -1; // if no button pressed
@@ -107,7 +107,7 @@ public:
                 if (event_actions.size() > 0)
                 {
                     Event* ev_gpio = new GPIOEvent(this, events_triggered_mask);
-                    mcu_queue_try_push(Event::event_queue, &ev_gpio);
+                    Event::AddToEventQueue(&ev_gpio);
                 }   
                 this->DetectADC();
             }

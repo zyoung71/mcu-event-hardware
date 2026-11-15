@@ -1,6 +1,6 @@
 #include <hardware/SerialUSB.hpp>
 
-#include <tusb.h>
+// WIP --- file has many errors
 
 void tud_mount_cb(void)
 {
@@ -11,7 +11,7 @@ void tud_mount_cb(void)
         {
             Event* ev = new USBUpdateEvent(serial_usb_detector_instance, USBUpdateEvent::CONNECTED);
             serial_usb_detector_instance->ProcessImmediateActions(ev);
-            mcu_queue_try_push(Event::event_queue, &ev);
+            Event::AddToEventQueue(&ev)
         }
     }
 }
@@ -25,7 +25,7 @@ void tud_umount_cb(void)
         {
             Event* ev = new USBUpdateEvent(serial_usb_detector_instance, USBUpdateEvent::DISCONNECTED);
             serial_usb_detector_instance->ProcessImmediateActions(ev);
-            mcu_queue_try_push(Event::event_queue, &ev);
+            Event::AddToEventQueue(&ev)
         }
     }
 }
@@ -39,7 +39,7 @@ void tud_suspend_cb(bool remote_wakeup_en)
         {
             Event* ev = new USBUpdateEvent(serial_usb_detector_instance, USBUpdateEvent::SUSPENDED);  
             serial_usb_detector_instance->ProcessImmediateActions(ev); 
-            mcu_queue_try_push(Event::event_queue, &ev);
+            Event::AddToEventQueue(&ev)
         }
     }
 }
@@ -53,7 +53,7 @@ void tud_resume_cb(void)
         {
             Event* ev = new USBUpdateEvent(serial_usb_detector_instance, USBUpdateEvent::RESUMED);
             serial_usb_detector_instance->ProcessImmediateActions(ev);
-            mcu_queue_try_push(Event::event_queue, &ev);
+            Event::AddToEventQueue(&ev)
         }
     }
 }

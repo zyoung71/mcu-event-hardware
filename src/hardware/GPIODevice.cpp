@@ -1,6 +1,5 @@
 #include "platform/gpio.h"
 #include "platform/platform_config.h"
-#include "platform/util/queue.h"
 #include <hardware/GPIODevice.hpp>
 
 GPIOEvent::GPIOEvent(EventSource* source, uint32_t events_triggered_mask)
@@ -55,7 +54,7 @@ void GPIODevice::HandleIRQ(uint32_t events_triggered_mask)
     {
         Event* ev = new GPIOEvent(this, events_triggered_mask);
         ProcessImmediateActions(ev);
-        mcu_queue_try_push(Event::event_queue, &ev);
+        Event::AddToEventQueue(&ev);
     }
 }
 
@@ -77,7 +76,7 @@ void GPIODeviceDebounce::HandleIRQ(uint32_t events_triggered_mask)
         {
             Event* ev = new GPIOEvent(this, events_triggered_mask); 
             ProcessImmediateActions(ev);  
-            mcu_queue_try_push(Event::event_queue, &ev);
+            Event::AddToEventQueue(&ev);
         }
     }
 }

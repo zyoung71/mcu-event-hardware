@@ -26,7 +26,7 @@ void Button::HandleIRQ(uint32_t events_triggered_mask)
         {
             Event* ev = new ButtonEvent(this, events_triggered_mask);
             ProcessImmediateActions(ev);
-            mcu_queue_try_push(Event::event_queue, &ev);
+            Event::AddToEventQueue(&ev);
         }
     }
 }
@@ -58,14 +58,14 @@ void DoublePressButton::HandleIRQ(uint32_t events_triggeted_mask)
                 double_press_intermediate = false;
                 Event* ev = new ButtonEvent(this, events_triggeted_mask, 2);
                 ProcessImmediateActions(ev);
-                mcu_queue_try_push(Event::event_queue, &ev);
+                Event::AddToEventQueue(&ev);
             }
             else
             {
                 double_press_intermediate = true;
                 Event* ev = new ButtonEvent(this, events_triggeted_mask, 1);
                 ProcessImmediateActions(ev);
-                mcu_queue_try_push(Event::event_queue, &ev);
+                Event::AddToEventQueue(&ev);
             }
     
             press_window_curr_time = mcu_get_time_since_boot_us();
@@ -97,21 +97,21 @@ void TriplePressButton::HandleIRQ(uint32_t events_triggered_mask)
                 double_press_intermediate = false;
                 Event* ev = new ButtonEvent(this, events_triggered_mask, 3);
                 ProcessImmediateActions(ev);
-                mcu_queue_try_push(Event::event_queue, &ev);
+                Event::AddToEventQueue(&ev);
             }
             else if (double_press_intermediate) // On second press
             {
                 triple_press_intermediate = true;
                 Event* ev = new ButtonEvent(this, events_triggered_mask, 2);
                 ProcessImmediateActions(ev);
-                mcu_queue_try_push(Event::event_queue, &ev);
+                Event::AddToEventQueue(&ev);
             }
             else // On first press
             {
                 double_press_intermediate = true;
                 Event* ev = new ButtonEvent(this, events_triggered_mask, 1);
                 ProcessImmediateActions(ev);
-                mcu_queue_try_push(Event::event_queue, &ev);
+                Event::AddToEventQueue(&ev);
             }
     
             press_window_curr_time = mcu_get_time_since_boot_us();
@@ -138,7 +138,7 @@ void StickyButton::HandleIRQ(uint32_t events_triggered_mask)
     
             Event* ev = new ButtonEvent(this, events_triggered_mask);
             ProcessImmediateActions(ev);
-            mcu_queue_try_push(Event::event_queue, &ev);
+            Event::AddToEventQueue(&ev);
         }
     }
 }

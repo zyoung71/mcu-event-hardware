@@ -2,18 +2,18 @@
 #include <event/Event.hpp>
 #include <hardware/Button.hpp>
 
-mcu_queue_t* Event::event_queue;
+mcu_protected_queue_t* Event::event_queue;
 Event::_InitializeEventQueue Event::_initialize_event_queue = Event::_InitializeEventQueue();
 
 Event::_InitializeEventQueue::_InitializeEventQueue()
 {
-    mcu_queue_init(&event_queue, sizeof(Event*), 32);
+    mcu_protected_queue_init(&event_queue, sizeof(Event*), 32);
 }
 
 void Event::HandleEvents()
 {
     Event* event;
-    while (mcu_queue_try_pop(event_queue, &event))
+    while (mcu_protected_queue_try_pop(event_queue, &event))
     {
         event->source->Dispatch(event);
         delete event;

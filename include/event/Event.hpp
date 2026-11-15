@@ -21,9 +21,13 @@ protected:
     EventSource* source;
 
 public:
-    static mcu_queue_t* event_queue;
+    static mcu_protected_queue_t* event_queue;
 
     static void HandleEvents();
+    static inline void AddToEventQueue(Event** ev)
+    {
+        mcu_protected_queue_try_push(event_queue, ev);
+    }
 
     Event(EventSource* source);
 
